@@ -15,14 +15,6 @@ import javax.swing.JPanel;
 
 public class GameVisualizer extends JPanel
 {
-    private final Timer m_timer = initTimer();
-    
-    private static Timer initTimer() 
-    {
-        Timer timer = new Timer("events generator", true);
-        return timer;
-    }
-    
     private volatile double m_robotPositionX = 100;
     private volatile double m_robotPositionY = 100; 
     private volatile double m_robotDirection = 0; 
@@ -35,7 +27,8 @@ public class GameVisualizer extends JPanel
     
     public GameVisualizer() 
     {
-        m_timer.schedule(new TimerTask()
+        Timer timer = new Timer("events generator", true);
+        timer.schedule(new TimerTask()
         {
             @Override
             public void run()
@@ -43,7 +36,7 @@ public class GameVisualizer extends JPanel
                 onRedrawEvent();
             }
         }, 0, 50);
-        m_timer.schedule(new TimerTask()
+        timer.schedule(new TimerTask()
         {
             @Override
             public void run()
