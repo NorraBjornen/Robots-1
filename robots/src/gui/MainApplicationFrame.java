@@ -2,13 +2,19 @@ package gui;
 
 import java.awt.Dimension;
 import java.awt.Toolkit;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.swing.JDesktopPane;
 import javax.swing.JFrame;
 import javax.swing.JInternalFrame;
 
+import gui.internal.frames.GameWindow;
+import gui.internal.frames.LogWindow;
 import log.Logger;
-import logic.StateSaver;
+import logic.state.DiskStateSaver;
+import gui.menu.MenuBuilder;
+import logic.state.WindowState;
 
 /**
  * Что требуется сделать:
@@ -20,7 +26,7 @@ public class MainApplicationFrame extends JFrame {
 
     private final LogWindow logWindow;
     private final GameWindow gameWindow;
-    private final StateSaver stateSaver;
+    private final DiskStateSaver diskStateSaver;
 
     public MainApplicationFrame() {
         int inset = 50;
@@ -32,24 +38,48 @@ public class MainApplicationFrame extends JFrame {
         setContentPane(desktopPane);
 
         logWindow = createLogWindow();
-        gameWindow = new GameWindow();
+        gameWindow = createGameWindow();
 
-        stateSaver = new StateSaver();
-        stateSaver.restoreState(this, logWindow, gameWindow);
+        diskStateSaver = new DiskStateSaver();
+
+        Map<String, WindowState> states = diskStateSaver.loadFromDisk();
+
+        if(states != null) {
+            WindowState logState = states.get("log");
+            WindowState gameState = states.get("game");
+
+            logWindow.restoreState(logState);
+            gameWindow.restoreState(gameState);
+        }
+
+        addWindow(logWindow);
+        addWindow(gameWindow);
 
         setJMenuBar(new MenuBuilder(this).generateMenuBar());
         addWindowListener(new DialogOnCloseAdapter(this));
     }
 
+    /**
+     * Вызывается при закрытии окна
+     *
+     * Состояния окно записываются в HashMap по соответвующим тэгам
+     * Затем HashMap передается в DiskStateSaver для сохранения состояния на диск
+     */
     public void onClose() {
-        stateSaver.saveState(logWindow, gameWindow);
+        WindowState logState = logWindow.saveState();
+        WindowState gameState = gameWindow.saveState();
+
+        HashMap<String, WindowState> states = new HashMap<>();
+        states.put("log", logState);
+        states.put("game", gameState);
+
+        diskStateSaver.saveOnDisk(states);
     }
 
-    public void setOperation(int operation) {
-        this.setDefaultCloseOperation(operation);
-    }
-
-    protected LogWindow createLogWindow() {
+    /**
+     * Создание окна LogWindow с указанными параметрами по умолчанию
+     */
+    private LogWindow createLogWindow() {
         LogWindow logWindow = new LogWindow(Logger.getDefaultLogSource());
         logWindow.setLocation(10, 10);
         logWindow.setSize(300, 800);
@@ -59,7 +89,16 @@ public class MainApplicationFrame extends JFrame {
         return logWindow;
     }
 
-    public void addWindow(JInternalFrame frame) {
+    /**
+     * Создание окна GameWindow с указанными параметрами по умолчанию
+     */
+    private GameWindow createGameWindow() {
+        GameWindow gameWindow = new GameWindow();
+        gameWindow.setSize(400, 400);
+        return gameWindow;
+    }
+
+    private void addWindow(JInternalFrame frame) {
         desktopPane.add(frame);
         frame.setVisible(true);
     }

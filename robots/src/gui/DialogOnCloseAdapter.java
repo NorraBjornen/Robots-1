@@ -47,10 +47,10 @@ public class DialogOnCloseAdapter extends WindowAdapter {
                 new Object[]{"Да", "Нет"},
                 "Да");
         if (result == JOptionPane.YES_OPTION){
-            frame.setOperation(JFrame.EXIT_ON_CLOSE);
+            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             frame.onClose();
         }
         else if (result == JOptionPane.NO_OPTION)
-            frame.setOperation(JFrame.DO_NOTHING_ON_CLOSE);
+            frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
     }
 }
