@@ -1,6 +1,6 @@
 package gui.internal.frames;
 
-import logic.state.StateSaveable;
+import logic.state.HasState;
 import logic.state.WindowState;
 
 import javax.swing.*;
@@ -9,7 +9,7 @@ import java.beans.PropertyVetoException;
 /**
  * Абстрактный класс внутреннего окна, реализующий стандартную логику сохранения состояния
  */
-abstract class AbstractInternalFrame extends JInternalFrame implements StateSaveable {
+abstract class AbstractInternalFrame extends JInternalFrame implements HasState {
 
     /**
      * Конструктор, аналогичный конструктору класса JInternalFrame
@@ -20,10 +20,10 @@ abstract class AbstractInternalFrame extends JInternalFrame implements StateSave
     }
 
     /**
-     * Возращает объект типа WindowState с текущими шириной, высотой, координатами и видимостью окна
+     * Возвращает объект типа WindowState с текущими шириной, высотой, координатами и видимостью окна
      */
     @Override
-    public WindowState saveState() {
+    public WindowState getState() {
         return new WindowState(getWidth(), getHeight(), getX(), getY(), isDisplayable());
     }
 
@@ -34,7 +34,7 @@ abstract class AbstractInternalFrame extends JInternalFrame implements StateSave
      * и по каким координатам должно быть окно
      */
     @Override
-    public void restoreState(WindowState state) {
+    public void setState(WindowState state) {
         setBounds(state.getX(), state.getY(), state.getWidth(), state.getHeight());
         if (state.isVisible()) {
             setVisible(true);

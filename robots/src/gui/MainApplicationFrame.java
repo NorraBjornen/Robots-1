@@ -41,15 +41,14 @@ public class MainApplicationFrame extends JFrame {
         gameWindow = createGameWindow();
 
         diskStateSaver = new DiskStateSaver();
+        boolean hasSavedData = diskStateSaver.loadFromDisk();
 
-        Map<String, WindowState> states = diskStateSaver.loadFromDisk();
+        if(hasSavedData) {
+            WindowState logState = diskStateSaver.getStateByTag("log");
+            WindowState gameState = diskStateSaver.getStateByTag("game");
 
-        if(states != null) {
-            WindowState logState = states.get("log");
-            WindowState gameState = states.get("game");
-
-            logWindow.restoreState(logState);
-            gameWindow.restoreState(gameState);
+            logWindow.setState(logState);
+            gameWindow.setState(gameState);
         }
 
         addWindow(logWindow);
@@ -62,18 +61,13 @@ public class MainApplicationFrame extends JFrame {
     /**
      * Вызывается при закрытии окна
      *
-     * Состояния окно записываются в HashMap по соответвующим тэгам
+     * Состояния окон записываются в HashMap по соответвующим тегам
      * Затем HashMap передается в DiskStateSaver для сохранения состояния на диск
      */
     public void onClose() {
-        WindowState logState = logWindow.saveState();
-        WindowState gameState = gameWindow.saveState();
-
-        HashMap<String, WindowState> states = new HashMap<>();
-        states.put("log", logState);
-        states.put("game", gameState);
-
-        diskStateSaver.saveOnDisk(states);
+        diskStateSaver.addState("log", logWindow.getState())
+                .addState("game", gameWindow.getState())
+                .save();
     }
 
     /**
@@ -92,7 +86,7 @@ public class MainApplicationFrame extends JFrame {
     /**
      * Создание окна GameWindow с указанными параметрами по умолчанию
      */
-    private GameWindow createGameWindow() {
+    private static GameWindow createGameWindow() {
         GameWindow gameWindow = new GameWindow();
         gameWindow.setSize(400, 400);
         return gameWindow;
