@@ -20,19 +20,18 @@ public class DialogOnCloseAdapter extends WindowAdapter {
     /**
      * @param jFrame окно, событие закрытия которого будет обрабатываться
      */
-    public DialogOnCloseAdapter(MainApplicationFrame jFrame){
+    public DialogOnCloseAdapter(MainApplicationFrame jFrame) {
         this.frame = jFrame;
     }
 
     /**
      * Переопределение коллбэка закрытия окна
-     *
+     * <p>
      * Выводит на экрна диалоговое окно с двумя вариантами ответа: "Да" и "Нет"
      * При выборе "Да" программа закрывается
      * При выборе "Нет" программа продолжает работу
      *
      * @param e событие окна с которым был вызван коллбэк
-     *
      */
     @Override
     public void windowClosing(WindowEvent e) {
@@ -46,10 +45,11 @@ public class DialogOnCloseAdapter extends WindowAdapter {
                 null,
                 new Object[]{"Да", "Нет"},
                 "Да");
-        if (result == JOptionPane.YES_OPTION){
-            frame.setOperation(JFrame.EXIT_ON_CLOSE);
+        if (result == JOptionPane.YES_OPTION) {
+            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            frame.onClose();
+        } else if (result == JOptionPane.NO_OPTION) {
+            frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         }
-        else if (result == JOptionPane.NO_OPTION)
-            frame.setOperation(JFrame.DO_NOTHING_ON_CLOSE);
     }
 }

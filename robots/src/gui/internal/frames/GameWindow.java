@@ -1,11 +1,12 @@
-package gui;
+package gui.internal.frames;
+
+import gui.GameVisualizer;
 
 import java.awt.BorderLayout;
 
-import javax.swing.JInternalFrame;
 import javax.swing.JPanel;
 
-public class GameWindow extends JInternalFrame
+public class GameWindow extends AbstractInternalFrame
 {
     public GameWindow()
     {
