@@ -12,7 +12,7 @@ public class DiskStateSaver {
     /**
      * Текстовое поле, хранящее в себе адрес файла, в который и из которого будет происходить запись и чтение
      */
-    private final String filename = System.getProperty("user.home") + "\\data";
+    private final String filename = System.getProperty("user.home") + "/data";
 
     /**
      * Поле, хранящее в себе информацию о состояниях окон то соответвующим тегам

@@ -25,7 +25,7 @@ public class Robot {
      * Поля, значения которых ограничивают скорость движения робота
      */
     private static final double maxVelocity = 0.1;
-    private static final double maxAngularVelocity = 0.001;
+    private static final double maxAngularVelocity = 0.005;
 
     /**
      * Список подписчиков RobotObserver на изменение состояния модели
@@ -72,7 +72,11 @@ public class Robot {
         double angleToTarget = angleTo(x, y, targetX, targetY, direction);
         double angularVelocity = calculateAngularVelocity(angleToTarget, direction, maxAngularVelocity);
 
-        double velocity = maxVelocity;
+        double velocity = 0;
+
+        if(angularVelocity == 0)
+            velocity = maxVelocity;
+
         double duration = 10;
 
         synchronized (this) {

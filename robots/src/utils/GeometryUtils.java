@@ -63,10 +63,11 @@ public class GeometryUtils {
     public static double calculateAngularVelocity(double angleToTarget, double direction, double maxAngularVelocity) {
         double velocity = 0;
         if (angleToTarget > direction) {
-            velocity = maxAngularVelocity;
+            velocity = Math.min((angleToTarget - direction) / 10, maxAngularVelocity);
         } else if (angleToTarget < direction) {
-            velocity = -maxAngularVelocity;
+            velocity = Math.max((angleToTarget - direction) / 10, -maxAngularVelocity);
         }
+
         return velocity;
     }
 
