@@ -5,21 +5,27 @@ import java.util.Collections;
 import java.util.LinkedList;
 
 /**
- * Что починить:
- * 1. Этот класс порождает утечку ресурсов (связанные слушатели оказываются
- * удерживаемыми в памяти)
- * 2. Этот класс хранит активные сообщения лога, но в такой реализации он
- * их лишь накапливает. Надо же, чтобы количество сообщений в логе было ограничено
- * величиной m_iQueueLength (т.е. реально нужна очередь сообщений
- * ограниченного размера)
+ * Класс, отвечающий за данные для логов
  */
 public class LogWindowSource
 {
+    /**
+     * Количество сообщений в логах
+     */
     private int queueLength;
 
+    /**
+     * Структура данных, отвечающая за хранение сообщений
+     */
     private LinkedList<LogEntry> messages;
+    /**
+     * Подписчики на событие изменения данных
+     */
     private final ArrayList<LogChangeListener> subscribers;
 
+    /**
+     * @param iQueueLength количество сообщений в логах
+     */
     public LogWindowSource(int iQueueLength)
     {
         queueLength = iQueueLength;
@@ -27,6 +33,9 @@ public class LogWindowSource
         subscribers = new ArrayList<>();
     }
 
+    /**
+     * @param listener объект, с реализацией LogChangeListener, желающий подписаться на обновление
+     */
     public void registerListener(LogChangeListener listener)
     {
         synchronized(subscribers)
@@ -35,6 +44,9 @@ public class LogWindowSource
         }
     }
 
+    /**
+     * @param listener объект, с реализацией LogChangeListener, желающий отписаться от обновления
+     */
     public void unregisterListener(LogChangeListener listener)
     {
         synchronized(subscribers)
@@ -43,6 +55,12 @@ public class LogWindowSource
         }
     }
 
+    /**
+     * Добавление сообщения в лог
+     *
+     * @param logLevel уровень сообщения
+     * @param strMessage содержание сообщения
+     */
     public void append(LogLevel logLevel, String strMessage)
     {
         LogEntry entry = new LogEntry(logLevel, strMessage);
@@ -58,11 +76,20 @@ public class LogWindowSource
             listener.onLogChanged();
     }
 
+    /**
+     * Возвращает количество хранимых сообщений
+     */
     public int size()
     {
         return messages.size();
     }
 
+    /**
+     * Возвращает итератор по сообщениям в заданном диапазоне
+     *
+     * @param startFrom индекс начала сообщений
+     * @param count количество сообщений для отображения
+     */
     public Iterable<LogEntry> range(int startFrom, int count)
     {
         if (startFrom < 0 || startFrom >= messages.size())
@@ -73,6 +100,9 @@ public class LogWindowSource
         return messages.subList(startFrom, indexTo);
     }
 
+    /**
+     * Возвращает итератор по всем хранимым сообщениям
+     */
     public Iterable<LogEntry> all()
     {
         return messages;

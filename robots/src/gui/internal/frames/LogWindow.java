@@ -5,19 +5,27 @@ import java.awt.EventQueue;
 import java.awt.TextArea;
 
 import javax.swing.JPanel;
+import javax.swing.event.InternalFrameAdapter;
+import javax.swing.event.InternalFrameEvent;
 
 import log.LogChangeListener;
 import log.LogEntry;
 import log.LogWindowSource;
 
+/**
+ * При закрытии окна произойдет отписка от обновления данныхв логах
+ */
 public class LogWindow extends AbstractInternalFrame implements LogChangeListener {
     private LogWindowSource m_logSource;
     private TextArea m_logContent;
 
     public LogWindow(LogWindowSource logSource) {
         super("Протокол работы", true, true, true, true);
+
+        LogChangeListener listener = this;
+
         m_logSource = logSource;
-        m_logSource.registerListener(this);
+        m_logSource.registerListener(listener);
         m_logContent = new TextArea("");
         m_logContent.setSize(200, 500);
 
@@ -26,6 +34,12 @@ public class LogWindow extends AbstractInternalFrame implements LogChangeListene
         getContentPane().add(panel);
         pack();
         updateLogContent();
+
+        addInternalFrameListener(new InternalFrameAdapter(){
+            public void internalFrameClosing(InternalFrameEvent e) {
+                m_logSource.unregisterListener(listener);
+            }
+        });
     }
 
     private void updateLogContent() {
