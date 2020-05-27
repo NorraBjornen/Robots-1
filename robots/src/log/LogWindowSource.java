@@ -3,6 +3,7 @@ package log;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * Класс, отвечающий за данные для логов
@@ -12,7 +13,7 @@ public class LogWindowSource
     /**
      * Количество сообщений в логах
      */
-    private int queueLength;
+    private final int queueLength;
 
     /**
      * Структура данных, отвечающая за хранение сообщений
@@ -21,7 +22,7 @@ public class LogWindowSource
     /**
      * Подписчики на событие изменения данных
      */
-    private final ArrayList<LogChangeListener> subscribers;
+    private final CopyOnWriteArrayList<LogChangeListener> subscribers;
 
     /**
      * @param iQueueLength количество сообщений в логах
@@ -30,7 +31,7 @@ public class LogWindowSource
     {
         queueLength = iQueueLength;
         messages = new LinkedList<>();
-        subscribers = new ArrayList<>();
+        subscribers = new CopyOnWriteArrayList<>();
     }
 
     /**
@@ -38,10 +39,7 @@ public class LogWindowSource
      */
     public void registerListener(LogChangeListener listener)
     {
-        synchronized(subscribers)
-        {
-            subscribers.add(listener);
-        }
+        subscribers.add(listener);
     }
 
     /**
@@ -49,10 +47,7 @@ public class LogWindowSource
      */
     public void unregisterListener(LogChangeListener listener)
     {
-        synchronized(subscribers)
-        {
-            subscribers.remove(listener);
-        }
+        subscribers.remove(listener);
     }
 
     /**
@@ -61,16 +56,14 @@ public class LogWindowSource
      * @param logLevel уровень сообщения
      * @param strMessage содержание сообщения
      */
-    public void append(LogLevel logLevel, String strMessage)
+    public synchronized void append(LogLevel logLevel, String strMessage)
     {
         LogEntry entry = new LogEntry(logLevel, strMessage);
 
-        synchronized (subscribers) {
-            if(size() == queueLength)
-                messages.removeFirst();
+        if(size() == queueLength)
+            messages.removeFirst();
 
-            messages.addLast(entry);
-        }
+        messages.addLast(entry);
 
         for (LogChangeListener listener : subscribers)
             listener.onLogChanged();
@@ -79,7 +72,7 @@ public class LogWindowSource
     /**
      * Возвращает количество хранимых сообщений
      */
-    public int size()
+    public synchronized int size()
     {
         return messages.size();
     }
@@ -90,21 +83,21 @@ public class LogWindowSource
      * @param startFrom индекс начала сообщений
      * @param count количество сообщений для отображения
      */
-    public Iterable<LogEntry> range(int startFrom, int count)
+    public synchronized Iterable<LogEntry> range(int startFrom, int count)
     {
         if (startFrom < 0 || startFrom >= messages.size())
         {
             return Collections.emptyList();
         }
         int indexTo = Math.min(startFrom + count, messages.size());
-        return messages.subList(startFrom, indexTo);
+        return new ArrayList<>(messages.subList(startFrom, indexTo));
     }
 
     /**
      * Возвращает итератор по всем хранимым сообщениям
      */
-    public Iterable<LogEntry> all()
+    public synchronized Iterable<LogEntry> all()
     {
-        return messages;
+        return new ArrayList<>(messages);
     }
 }
