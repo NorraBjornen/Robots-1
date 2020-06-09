@@ -17,11 +17,17 @@ public class DialogOnCloseAdapter extends WindowAdapter {
      */
     private final MainApplicationFrame frame;
 
+    private final String yes, no, sure, exit;
+
     /**
      * @param jFrame окно, событие закрытия которого будет обрабатываться
      */
-    public DialogOnCloseAdapter(MainApplicationFrame jFrame) {
+    public DialogOnCloseAdapter(MainApplicationFrame jFrame, String yes, String no, String sure, String exit) {
         this.frame = jFrame;
+        this.yes = yes;
+        this.no = no;
+        this.sure = sure;
+        this.exit = exit;
     }
 
     /**
@@ -35,16 +41,15 @@ public class DialogOnCloseAdapter extends WindowAdapter {
      */
     @Override
     public void windowClosing(WindowEvent e) {
-        Locale.setDefault(new Locale("ru"));
         int result = JOptionPane.showOptionDialog(
                 null,
-                "Вы действительно хотите выйти?",
-                "Выход",
+                sure,
+                exit,
                 JOptionPane.YES_NO_OPTION,
                 JOptionPane.INFORMATION_MESSAGE,
                 null,
-                new Object[]{"Да", "Нет"},
-                "Да");
+                new Object[]{yes, no},
+                yes);
         if (result == JOptionPane.YES_OPTION) {
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             frame.onClose();
