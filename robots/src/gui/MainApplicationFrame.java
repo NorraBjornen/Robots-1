@@ -29,9 +29,10 @@ public class MainApplicationFrame extends JFrame {
     private final GameWindow gameWindow;
     private final CoordinatesWindow coordinatesWindow;
     private final DiskStateSaver diskStateSaver;
+    private final DialogOnCloseAdapter dialogOnCloseAdapter;
 
-    public MainApplicationFrame(Robot robot, Locale locale) {
-        ResourceBundle exampleBundle = PropertyResourceBundle.getBundle("resources", locale);
+    public MainApplicationFrame(Robot robot) {
+        ResourceBundle exampleBundle = PropertyResourceBundle.getBundle("resources", Locale.getDefault());
 
         int inset = 50;
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
@@ -41,14 +42,14 @@ public class MainApplicationFrame extends JFrame {
 
         setContentPane(desktopPane);
 
+        diskStateSaver = new DiskStateSaver();
+        boolean hasSavedData = diskStateSaver.loadFromDisk();
+
         gameWindow = createGameWindow(robot, exampleBundle.getString("game_header"));
         logWindow = createLogWindow(exampleBundle.getString("log_header"), exampleBundle.getString("log_start_message"));
         coordinatesWindow = createCoordinatesWindow(exampleBundle.getString("coords_header"));
 
         robot.subscribe(coordinatesWindow);
-
-        diskStateSaver = new DiskStateSaver();
-        boolean hasSavedData = diskStateSaver.loadFromDisk();
 
         if (hasSavedData) {
             WindowState logState = diskStateSaver.getStateByTag("log");
@@ -65,13 +66,33 @@ public class MainApplicationFrame extends JFrame {
         addWindow(coordinatesWindow);
 
         setJMenuBar(new MenuBuilder(this).generateMenuBar(exampleBundle));
-        addWindowListener(new DialogOnCloseAdapter(
+
+        dialogOnCloseAdapter = new DialogOnCloseAdapter(
                 this,
                 exampleBundle.getString("d_yes"),
                 exampleBundle.getString("d_no"),
                 exampleBundle.getString("d_sure"),
                 exampleBundle.getString("d_exit")
-        ));
+        );
+
+        addWindowListener(dialogOnCloseAdapter);
+    }
+
+    /**
+     * Вызывается при закрытии окнанажатии на пункт меню с выбором языка
+     * Меняет язык надписей заголовков окон, пунктов меню и диалогового окна
+     */
+    public void updateLanguage(Locale locale){
+        ResourceBundle exampleBundle = PropertyResourceBundle.getBundle("resources", locale);
+        gameWindow.setTitle(exampleBundle.getString("game_header"));
+        logWindow.setTitle(exampleBundle.getString("log_header"));
+        coordinatesWindow.setTitle(exampleBundle.getString("coords_header"));
+        dialogOnCloseAdapter.changeLang(
+            exampleBundle.getString("d_yes"),
+            exampleBundle.getString("d_no"),
+            exampleBundle.getString("d_sure"),
+            exampleBundle.getString("d_exit")
+        );
     }
 
     /**

@@ -17,13 +17,32 @@ public class DialogOnCloseAdapter extends WindowAdapter {
      */
     private final MainApplicationFrame frame;
 
-    private final String yes, no, sure, exit;
+    private String yes, no, sure, exit;
 
     /**
      * @param jFrame окно, событие закрытия которого будет обрабатываться
+     * @param yes текст кнопки подтверждения
+     * @param no текст кнопки отрицания
+     * @param sure текст сообщения внутри диалогового окна
+     * @param exit текст заголовка диалогового окна
      */
     public DialogOnCloseAdapter(MainApplicationFrame jFrame, String yes, String no, String sure, String exit) {
         this.frame = jFrame;
+        this.yes = yes;
+        this.no = no;
+        this.sure = sure;
+        this.exit = exit;
+    }
+
+    /**
+     * Позволяет сменить язык текста в диалоговом окне
+     *
+     * @param yes текст кнопки подтверждения
+     * @param no текст кнопки отрицания
+     * @param sure текст сообщения внутри диалогового окна
+     * @param exit текст заголовка диалогового окна
+     */
+    public void changeLang(String yes, String no, String sure, String exit) {
         this.yes = yes;
         this.no = no;
         this.sure = sure;

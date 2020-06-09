@@ -11,7 +11,6 @@ import javax.swing.UIManager;
 public class RobotsProgram
 {
     public static void main(String[] args) {
-        Locale locale = new Locale("en", "EN");
         Robot robot = new Robot();
         try {
             UIManager.setLookAndFeel("javax.swing.plaf.nimbus.NimbusLookAndFeel");
@@ -19,7 +18,7 @@ public class RobotsProgram
             e.printStackTrace();
         }
         SwingUtilities.invokeLater(() -> {
-            MainApplicationFrame frame = new MainApplicationFrame(robot, locale);
+            MainApplicationFrame frame = new MainApplicationFrame(robot);
             frame.pack();
             frame.setVisible(true);
             frame.setExtendedState(Frame.MAXIMIZED_BOTH);
