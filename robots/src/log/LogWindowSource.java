@@ -3,6 +3,7 @@ package log;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
@@ -18,11 +19,11 @@ public class LogWindowSource
     /**
      * Структура данных, отвечающая за хранение сообщений
      */
-    private LinkedList<LogEntry> messages;
+    private final LinkedList<LogEntry> messages;
     /**
      * Подписчики на событие изменения данных
      */
-    private final CopyOnWriteArrayList<LogChangeListener> subscribers;
+    private final List<LogChangeListener> subscribers;
 
     /**
      * @param iQueueLength количество сообщений в логах

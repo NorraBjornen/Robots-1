@@ -8,7 +8,7 @@ public final class Logger
     static {
         defaultLogSource = new LogWindowSource(5);
     }
-    private static AtomicInteger messageNumber = new AtomicInteger(0);
+    private static final AtomicInteger messageNumber = new AtomicInteger(0);
     
     private Logger()
     {
