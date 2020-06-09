@@ -2,88 +2,103 @@ package log;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
- * Что починить:
- * 1. Этот класс порождает утечку ресурсов (связанные слушатели оказываются
- * удерживаемыми в памяти)
- * 2. Этот класс хранит активные сообщения лога, но в такой реализации он 
- * их лишь накапливает. Надо же, чтобы количество сообщений в логе было ограничено 
- * величиной m_iQueueLength (т.е. реально нужна очередь сообщений 
- * ограниченного размера) 
+ * Класс, отвечающий за данные для логов
  */
 public class LogWindowSource
 {
-    private int m_iQueueLength;
-    
-    private ArrayList<LogEntry> m_messages;
-    private final ArrayList<LogChangeListener> m_listeners;
-    private volatile LogChangeListener[] m_activeListeners;
-    
-    public LogWindowSource(int iQueueLength) 
+    /**
+     * Количество сообщений в логах
+     */
+    private final int queueLength;
+
+    /**
+     * Структура данных, отвечающая за хранение сообщений
+     */
+    private final LinkedList<LogEntry> messages;
+    /**
+     * Подписчики на событие изменения данных
+     */
+    private final List<LogChangeListener> subscribers;
+
+    /**
+     * @param iQueueLength количество сообщений в логах
+     */
+    public LogWindowSource(int iQueueLength)
     {
-        m_iQueueLength = iQueueLength;
-        m_messages = new ArrayList<LogEntry>(iQueueLength);
-        m_listeners = new ArrayList<LogChangeListener>();
-    }
-    
-    public void registerListener(LogChangeListener listener)
-    {
-        synchronized(m_listeners)
-        {
-            m_listeners.add(listener);
-            m_activeListeners = null;
-        }
-    }
-    
-    public void unregisterListener(LogChangeListener listener)
-    {
-        synchronized(m_listeners)
-        {
-            m_listeners.remove(listener);
-            m_activeListeners = null;
-        }
-    }
-    
-    public void append(LogLevel logLevel, String strMessage)
-    {
-        LogEntry entry = new LogEntry(logLevel, strMessage);
-        m_messages.add(entry);
-        LogChangeListener [] activeListeners = m_activeListeners;
-        if (activeListeners == null)
-        {
-            synchronized (m_listeners)
-            {
-                if (m_activeListeners == null)
-                {
-                    activeListeners = m_listeners.toArray(new LogChangeListener [0]);
-                    m_activeListeners = activeListeners;
-                }
-            }
-        }
-        for (LogChangeListener listener : activeListeners)
-        {
-            listener.onLogChanged();
-        }
-    }
-    
-    public int size()
-    {
-        return m_messages.size();
+        queueLength = iQueueLength;
+        messages = new LinkedList<>();
+        subscribers = new CopyOnWriteArrayList<>();
     }
 
-    public Iterable<LogEntry> range(int startFrom, int count)
+    /**
+     * @param listener объект, с реализацией LogChangeListener, желающий подписаться на обновление
+     */
+    public void registerListener(LogChangeListener listener)
     {
-        if (startFrom < 0 || startFrom >= m_messages.size())
+        subscribers.add(listener);
+    }
+
+    /**
+     * @param listener объект, с реализацией LogChangeListener, желающий отписаться от обновления
+     */
+    public void unregisterListener(LogChangeListener listener)
+    {
+        subscribers.remove(listener);
+    }
+
+    /**
+     * Добавление сообщения в лог
+     *
+     * @param logLevel уровень сообщения
+     * @param strMessage содержание сообщения
+     */
+    public synchronized void append(LogLevel logLevel, String strMessage)
+    {
+        LogEntry entry = new LogEntry(logLevel, strMessage);
+
+        if(size() == queueLength)
+            messages.removeFirst();
+
+        messages.addLast(entry);
+
+        for (LogChangeListener listener : subscribers)
+            listener.onLogChanged();
+    }
+
+    /**
+     * Возвращает количество хранимых сообщений
+     */
+    public synchronized int size()
+    {
+        return messages.size();
+    }
+
+    /**
+     * Возвращает итератор по сообщениям в заданном диапазоне
+     *
+     * @param startFrom индекс начала сообщений
+     * @param count количество сообщений для отображения
+     */
+    public synchronized Iterable<LogEntry> range(int startFrom, int count)
+    {
+        if (startFrom < 0 || startFrom >= messages.size())
         {
             return Collections.emptyList();
         }
-        int indexTo = Math.min(startFrom + count, m_messages.size());
-        return m_messages.subList(startFrom, indexTo);
+        int indexTo = Math.min(startFrom + count, messages.size());
+        return new ArrayList<>(messages.subList(startFrom, indexTo));
     }
 
-    public Iterable<LogEntry> all()
+    /**
+     * Возвращает итератор по всем хранимым сообщениям
+     */
+    public synchronized Iterable<LogEntry> all()
     {
-        return m_messages;
+        return new ArrayList<>(messages);
     }
 }

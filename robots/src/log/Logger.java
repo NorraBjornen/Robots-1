@@ -1,11 +1,14 @@
 package log;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 public final class Logger
 {
     private static final LogWindowSource defaultLogSource;
     static {
-        defaultLogSource = new LogWindowSource(100);
+        defaultLogSource = new LogWindowSource(5);
     }
+    private static final AtomicInteger messageNumber = new AtomicInteger(0);
     
     private Logger()
     {
@@ -13,12 +16,12 @@ public final class Logger
 
     public static void debug(String strMessage)
     {
-        defaultLogSource.append(LogLevel.Debug, strMessage);
+        defaultLogSource.append(LogLevel.Debug, messageNumber.getAndIncrement() + " " + strMessage);
     }
     
     public static void error(String strMessage)
     {
-        defaultLogSource.append(LogLevel.Error, strMessage);
+        defaultLogSource.append(LogLevel.Error, messageNumber.getAndIncrement() + " " + strMessage);
     }
 
     public static LogWindowSource getDefaultLogSource()
