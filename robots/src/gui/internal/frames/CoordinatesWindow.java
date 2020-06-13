@@ -15,8 +15,8 @@ public class CoordinatesWindow extends AbstractInternalFrame implements RobotObs
      */
     private final TextArea area;
 
-    public CoordinatesWindow() {
-        super("Координаты робота", true, true, true, true);
+    public CoordinatesWindow(String title) {
+        super(title, true, true, true, true);
 
         area = new TextArea("");
         area.setSize(200, 500);

@@ -2,8 +2,7 @@ package gui;
 
 import java.awt.Dimension;
 import java.awt.Toolkit;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import javax.swing.JDesktopPane;
 import javax.swing.JFrame;
@@ -30,8 +29,11 @@ public class MainApplicationFrame extends JFrame {
     private final GameWindow gameWindow;
     private final CoordinatesWindow coordinatesWindow;
     private final DiskStateSaver diskStateSaver;
+    private final DialogOnCloseAdapter dialogOnCloseAdapter;
 
     public MainApplicationFrame(Robot robot) {
+        ResourceBundle exampleBundle = PropertyResourceBundle.getBundle("resources", Locale.getDefault());
+
         int inset = 50;
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         setBounds(inset, inset,
@@ -40,16 +42,16 @@ public class MainApplicationFrame extends JFrame {
 
         setContentPane(desktopPane);
 
-        gameWindow = createGameWindow(robot);
-        logWindow = createLogWindow();
-        coordinatesWindow = createCoordinatesWindow();
-
-        robot.subscribe(coordinatesWindow);
-
         diskStateSaver = new DiskStateSaver();
         boolean hasSavedData = diskStateSaver.loadFromDisk();
 
-        if(hasSavedData) {
+        gameWindow = createGameWindow(robot, exampleBundle.getString("game_header"));
+        logWindow = createLogWindow(exampleBundle.getString("log_header"), exampleBundle.getString("log_start_message"));
+        coordinatesWindow = createCoordinatesWindow(exampleBundle.getString("coords_header"));
+
+        robot.subscribe(coordinatesWindow);
+
+        if (hasSavedData) {
             WindowState logState = diskStateSaver.getStateByTag("log");
             WindowState gameState = diskStateSaver.getStateByTag("game");
             WindowState coordinatesState = diskStateSaver.getStateByTag("coord");
@@ -63,13 +65,39 @@ public class MainApplicationFrame extends JFrame {
         addWindow(gameWindow);
         addWindow(coordinatesWindow);
 
-        setJMenuBar(new MenuBuilder(this).generateMenuBar());
-        addWindowListener(new DialogOnCloseAdapter(this));
+        setJMenuBar(new MenuBuilder(this).generateMenuBar(exampleBundle));
+
+        dialogOnCloseAdapter = new DialogOnCloseAdapter(
+                this,
+                exampleBundle.getString("d_yes"),
+                exampleBundle.getString("d_no"),
+                exampleBundle.getString("d_sure"),
+                exampleBundle.getString("d_exit")
+        );
+
+        addWindowListener(dialogOnCloseAdapter);
+    }
+
+    /**
+     * Вызывается при закрытии окнанажатии на пункт меню с выбором языка
+     * Меняет язык надписей заголовков окон, пунктов меню и диалогового окна
+     */
+    public void updateLanguage(Locale locale){
+        ResourceBundle exampleBundle = PropertyResourceBundle.getBundle("resources", locale);
+        gameWindow.setTitle(exampleBundle.getString("game_header"));
+        logWindow.setTitle(exampleBundle.getString("log_header"));
+        coordinatesWindow.setTitle(exampleBundle.getString("coords_header"));
+        dialogOnCloseAdapter.changeLang(
+            exampleBundle.getString("d_yes"),
+            exampleBundle.getString("d_no"),
+            exampleBundle.getString("d_sure"),
+            exampleBundle.getString("d_exit")
+        );
     }
 
     /**
      * Вызывается при закрытии окна
-     *
+     * <p>
      * Состояния окон записываются в HashMap по соответвующим тегам
      * Затем HashMap передается в DiskStateSaver для сохранения состояния на диск
      */
@@ -83,21 +111,21 @@ public class MainApplicationFrame extends JFrame {
     /**
      * Создание окна LogWindow с указанными параметрами по умолчанию
      */
-    private LogWindow createLogWindow() {
-        LogWindow logWindow = new LogWindow(Logger.getDefaultLogSource());
+    private LogWindow createLogWindow(String title, String startMessage) {
+        LogWindow logWindow = new LogWindow(Logger.getDefaultLogSource(), title);
         logWindow.setLocation(10, 10);
         logWindow.setSize(300, 800);
         setMinimumSize(logWindow.getSize());
         logWindow.pack();
-        Logger.debug("Протокол работает");
+        Logger.debug(startMessage);
         return logWindow;
     }
 
     /**
      * Создание окна GameWindow с указанными параметрами по умолчанию
      */
-    private static GameWindow createGameWindow(Robot robot) {
-        GameWindow gameWindow = new GameWindow(robot);
+    private static GameWindow createGameWindow(Robot robot, String title) {
+        GameWindow gameWindow = new GameWindow(robot, title);
         gameWindow.setSize(400, 400);
         return gameWindow;
     }
@@ -105,8 +133,8 @@ public class MainApplicationFrame extends JFrame {
     /**
      * Создание окна CoordinatesWindow с указанными параметрами по умолчанию
      */
-    private static CoordinatesWindow createCoordinatesWindow() {
-        CoordinatesWindow coordinatesWindow = new CoordinatesWindow();
+    private static CoordinatesWindow createCoordinatesWindow(String title) {
+        CoordinatesWindow coordinatesWindow = new CoordinatesWindow(title);
         coordinatesWindow.setLocation(10, 100);
         coordinatesWindow.setSize(400, 400);
         return coordinatesWindow;
